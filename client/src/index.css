@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Fredoka&display=swap");
+
+body {
+  /* background: rgb(33, 33, 48); */
+  /* background-image: url("https://ak.picdn.net/shutterstock/videos/1032769898/thumb/1.jpg"); */
+  background-image: url("https://htmlcolors.com/gradients-images/1134-purple-to-blue.jpg");
+  background-size: cover;
+  font-family: "Fredoka", sans-serif;
+  color: aliceblue;
+}
