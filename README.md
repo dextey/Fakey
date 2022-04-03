@@ -1,5 +1,8 @@
 # Fakey
 
+#Live link :
+https://fakey.netlify.app/
+
 ## How to use it
 
 1. clone the repo 
