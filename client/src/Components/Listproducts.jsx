@@ -2,7 +2,10 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 // import QRCode from "react-qr-code";
+const Web3 = require("web3");
 function Listproducts({ marketplace, nft, setProduct }) {
+  const web3 = new Web3(window.ethereum);
+
   const navigate = useNavigate();
   const axios = require("axios");
   const [items, setItems] = useState([]);
@@ -43,35 +46,48 @@ function Listproducts({ marketplace, nft, setProduct }) {
   }, []);
 
   return (
-    <div className="flex flex-col ">
-      {items.map((item) => {
-        console.log(JSON.stringify(item, null, 4));
-        return (
-          <div
-            className="flex  w-full bg-[#5f5f5f56] rounded-lg p-2 m-2"
-            onClick={() => {
-              navigate("/product");
-              setProduct(item);
-            }}
-          >
-            <div className="m-2">
-              <img
-                src={item.image}
-                alt={item.image.name}
-                style={{ width: 100 }}
-              />
-            </div>
-            <div className=" flex text-[1rem] flex-col p-2 ml-3">
-              <span>
-                <span className="mx-2 font-bold">{item.brand}</span>
-                <span>{item.name}</span>
-              </span>
-              <span>{item.description}</span>
-              <span>{item.price}</span>
-            </div>
-          </div>
-        );
-      })}
+    <div className="flex w-full flex-col ">
+      <table className="w-full m-3 ">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-2  text-gray-500">Image</th>
+            <th className="px-6 py-2  text-gray-500">Product name</th>
+            <th className="px-6 py-2  text-gray-500">Description</th>
+            <th className="px-6 py-2  text-gray-500">category</th>
+            <th className="px-6 py-2  text-gray-500">Price</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white">
+          {items.map((item) => {
+            console.log(JSON.stringify(item, null, 4));
+            return (
+              <tr className="text-center text-[1.1rem]">
+                <td className="px-6 py-4 pl-4  text-gray-500">
+                  <div>
+                    <img
+                      className="rounded"
+                      src={item.image}
+                      style={{ width: 100 }}
+                    />
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className=" text-gray-900">{item.name}</div>
+                </td>
+                <td className="px-6 py-4 ">
+                  <div className=" text-gray-900 ">{item.description}</div>
+                </td>
+                <td className="px-6 py-4  text-gray-900">{item.category}</td>
+                <td className="px-6 py-4">
+                  <div className=" text-gray-900">
+                    {parseFloat(web3.utils.fromWei(item.price, "ether"))} MATIC
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

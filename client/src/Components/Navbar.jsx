@@ -1,11 +1,11 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Firebase } from "../firebaseConfig";
 import { getAuth, signOut } from "firebase/auth";
 
 function Navbar({ userData }) {
   const navigate = useNavigate();
 
+  //Logout function from firebase
   const logout = () => {
     const auth = getAuth();
     signOut(auth)
@@ -23,8 +23,10 @@ function Navbar({ userData }) {
       <Link to="/" className="text-3xl font-extrabold">
         Fakey
       </Link>
+
       {userData ? (
         <span className="flex items-center">
+          <span className="font-bold ">{window.ethereum.selectedAddress}</span>
           <span
             onClick={() => {
               logout();
@@ -33,10 +35,9 @@ function Navbar({ userData }) {
           >
             {userData.seller ? userData.brand : userData.username}
           </span>
-
           {userData.seller && (
             <Link
-              to="/customer"
+              to="/console"
               className="bg-yellow-200 text-black font-bold px-2 p-1 m-2 rounded-md "
             >
               console

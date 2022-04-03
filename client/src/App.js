@@ -1,125 +1,101 @@
 import React, { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
-import Customer from "./Pages/customer/Customer";
+import Console from "./Pages/seller/Console";
 import Product from "./Pages/user/Product";
 
 import Homepage from "./Pages/user/Homepage";
 import SignIn from "./Pages/user/SignIn";
 import SignUp from "./Pages/user/SignUp";
 
-import NFT from "./Contracts/NFT.json";
-import Marketplace from "./Contracts/Marketplace.json";
-
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { Firebase, db } from "./firebaseConfig";
+import { doc, getDoc } from "@firebase/firestore";
 
-const Web3 = require("web3");
+import { loadContracts } from "./web3Handler";
+import Navbar from "./Components/Navbar";
 
 function App() {
-  const [account, setAccount] = useState(null);
+  const [account, setAccount] = useState(window.ethereum.selectedAddress);
   const [nft, setNft] = useState(null);
   const [marketplace, setMarketplace] = useState(null);
-
   const [user, setUser] = useState(null);
+  const [userData, setuserData] = useState(null);
+  const Web3 = require("web3");
+  useEffect(async () => {
+    const web3 = new Web3(window.ethereum);
+    // const val = web3.utils.toWei("0.0002", "ether");
+    // console.log(web3.utils.toEther(val));
 
-  const web3Handler = async () => {
-    if (window.ethereum) {
-      const web3 = new Web3(window.ethereum);
-      try {
-        // Request account access if needed
-        await window.ethereum.enable();
-        // Accounts now exposed
-      } catch (error) {
-        console.log("user rejected the request");
-      }
+    loadContracts()
+      .then((contracts) => {
+        setNft(contracts.nftContract);
+        setMarketplace(contracts.marketplaceContract);
+      })
+      .catch((err) => console.log(err));
 
-      const accounts = await web3.eth.getAccounts();
-      setAccount(accounts[0]);
-      loadContracts(web3);
-    }
-  };
-
-  const loadContracts = async (web3) => {
-    const networkId = await web3.eth.net.getId();
-
-    const nftNetworkData = NFT.networks[networkId];
-    const marketplaceNetworkData = Marketplace.networks[networkId];
-
-    if (nftNetworkData && marketplaceNetworkData) {
-      const nftAbi = NFT.abi;
-      const nftAddress = nftNetworkData.address;
-      const nftContract = new web3.eth.Contract(nftAbi, nftAddress);
-
-      const marketplaceAbi = Marketplace.abi;
-      const marketplaceAddress = marketplaceNetworkData.address;
-      const marketplaceContract = new web3.eth.Contract(
-        marketplaceAbi,
-        marketplaceAddress
-      );
-      // console.log(contract);
-      setNft(nftContract);
-      setMarketplace(marketplaceContract);
-    }
-  };
-
-  useEffect(() => {
     const auth = getAuth(Firebase);
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user.uid);
+        const data = await getDoc(doc(db, "userData", user.uid));
+        setuserData(data.data());
       } else {
         console.log("logged out");
       }
     });
-
-    web3Handler();
   }, []);
 
+  //for accessing data of each product loaded from contract
   const [product, setProduct] = useState(null);
-
+  const pathname = useLocation().pathname;
   return (
-    <Routes>
-      <Route
-        exact
-        path="/"
-        element={
-          <Homepage
-            user={user}
-            account={account}
-            marketplace={marketplace}
-            nft={nft}
-            setProduct={setProduct}
-          />
-        }
-      />
-      <Route path="/signIn" element={<SignIn />} />
-      <Route path="/signUp" element={<SignUp />} />
+    <>
+      {pathname === "/signIn" || pathname === "/signUp" ? null : (
+        <Navbar userData={userData} user={user} />
+      )}
+      <Routes>
+        <Route
+          exact
+          path="/"
+          element={
+            <Homepage
+              user={user}
+              setAccount={setAccount}
+              marketplace={marketplace}
+              nft={nft}
+              setProduct={setProduct}
+            />
+          }
+        />
+        <Route path="/signIn" element={<SignIn />} />
+        <Route path="/signUp" element={<SignUp />} />
 
-      <Route
-        path="/customer/"
-        element={
-          <Customer
-            account={account}
-            marketplace={marketplace}
-            nft={nft}
-            setProduct={setProduct}
-            user={user}
-          />
-        }
-      />
-      <Route
-        path="/product"
-        element={
-          <Product
-            account={account}
-            marketplace={marketplace}
-            product={product}
-            user={user}
-          />
-        }
-      />
-    </Routes>
+        <Route
+          path="/console/"
+          element={
+            <Console
+              account={account}
+              marketplace={marketplace}
+              nft={nft}
+              setProduct={setProduct}
+              userData={userData}
+            />
+          }
+        />
+        <Route
+          path="/product"
+          element={
+            <Product
+              account={account}
+              marketplace={marketplace}
+              product={product}
+              // user={user}
+            />
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

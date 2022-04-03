@@ -1,26 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { QRCode } from "react-qr-svg";
-import Navbar from "../../Components/Navbar";
 
-import { Firebase, db } from "../../firebaseConfig";
-
-import { doc, getDoc } from "@firebase/firestore";
 const Web3 = require("web3");
 
-function Product({ product, account, marketplace, user }) {
+function Product({ product, account, marketplace }) {
   const [productDetails, setProductDetails] = useState("");
-
-  const [userData, setuserData] = useState(null);
+  const web3 = new Web3(window.ethereum);
 
   useEffect(async () => {
-    if (user) {
-      const data = await getDoc(doc(db, "userData", user));
-      setuserData(data.data());
-    }
     const item = await marketplace.methods.items(product.id).call();
     console.log(item);
     setProductDetails(item);
-  }, [user]);
+  }, []);
 
   if (product && productDetails) {
     product.nft = productDetails.nft;
@@ -31,10 +22,15 @@ function Product({ product, account, marketplace, user }) {
   }
 
   const buyProduct = async (id) => {
-    const web3 = new Web3(window.ethereum);
+    const price = parseFloat(
+      web3.utils.fromWei(product.price, "ether")
+    ).toString();
+
     const result = await marketplace.methods.purchaseItem(id).send({
       from: window.ethereum.selectedAddress,
-      value: web3.utils.toWei(product.price, "ether"),
+      gasLimit: "1000000",
+      gasPrice: "30000000000",
+      value: web3.utils.toWei(price, "ether"),
     });
 
     window.location.replace("/");
@@ -42,7 +38,6 @@ function Product({ product, account, marketplace, user }) {
 
   return (
     <>
-      <Navbar userData={userData} />
       {product && (
         <div className="container mx-auto">
           <div className="flex justify-between p-2 my-4  items-center">
@@ -56,7 +51,8 @@ function Product({ product, account, marketplace, user }) {
                 <span className="font-bold text-3xl">{product.name}</span>
                 <span className="font text-2xl">{product.brand}</span>
                 <span className="font-bold text-2xl my-1">
-                  Price : {product.price} ETH
+                  Price :{" "}
+                  {parseFloat(web3.utils.fromWei(product.price, "ether"))} MATIC
                 </span>
                 <span className=" text-2xl">{product.description}</span>
               </div>
