@@ -1,6 +1,6 @@
 # Fakey
 
-#Live link :
+# Live link :
 https://fakey.netlify.app/
 
 ## How to use it
